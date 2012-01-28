@@ -1,3 +1,10 @@
+This is my fork of Emscripten to work on adding SDL functions for my project, JSWabbitemu, as well as additional functions outside the scope of my project.
+Not too sure about license yet, but I think the code matters more, right? ;)
+
+The important file is `src/library_sdl.js`, but you may see some testcases in `tests/`.
+Enjoy! Please feel free to file bug reports, etc. as needed.
+
+Original README follows...
 
 Emscripten
 ==========
