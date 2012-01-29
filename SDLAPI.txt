@@ -1,0 +1,216 @@
+SDL API Implementation Status
+==============================
+This lists the SDL (v1.2) functions and their implementation status in Emscripten.
+
+General
+    SDL_Init - Initializes SDL [done]
+    SDL_InitSubSystem - Initializes subsystems
+    SDL_QuitSubSystem - Shuts down a subsystem
+    SDL_Quit - Shuts down SDL
+    SDL_WasInit - Checks which subsystems are initialized
+    SDL_GetError - Gets SDL error string
+    SDL_SetError - Sets SDL Error
+    SDL_Error - Sets SDL Error from an error code
+    SDL_ClearError - Clear SDL current error
+    SDL_LoadObject - Loads a shared object.
+    SDL_LoadFunction - Returns the address of a function in a loaded shared object.
+    SDL_UnloadObject - Unloads a shared object.
+    SDL_envvars - SDL environment variables
+    SDL_VERSION - Determine the compile-time version of SDL
+    SDL_Linked_Version - Determine the runtime version of SDL
+    SDL_version - Defines an SDL version 
+
+Video
+    SDL_GetVideoSurface - Returns a pointer to the current display surface
+    SDL_GetVideoInfo - Returns a pointer to information about the video hardware
+    SDL_VideoDriverName - Obtain the name of the video driver
+    SDL_ListModes - Returns a pointer to an array of available screen dimensions for the given format and video flags
+    SDL_VideoModeOK - Checks to see if a particular video mode is supported.
+    SDL_SetVideoMode - Sets up a video mode with the specified width, height and bits-per-pixel.
+    SDL_UpdateRect - Makes sure the given area is updated on the given screen.
+    SDL_UpdateRects - Makes sure the given list of rectangles is updated on the given screen.
+    SDL_Flip - Swaps screen buffers
+    SDL_SetColors - Sets a portion of the colormap for the given 8-bit surface.
+    SDL_SetPalette - Sets the colors in the palette of an 8-bit surface.
+    SDL_SetGamma - Sets the color gamma function for the display
+    SDL_GetGammaRamp - Gets the color gamma lookup tables for the display
+    SDL_SetGammaRamp - Sets the color gamma lookup tables for the display
+    SDL_MapRGB - Maps a RGB color value to a pixel format.
+    SDL_MapRGBA - Maps a RGBA color value to a pixel format.
+    SDL_GetRGB - Gets RGB values from a pixel in the specified pixel format.
+    SDL_GetRGBA - Gets RGBA values from a pixel in the specified pixel format.
+    SDL_CreateRGBSurface - Creates an empty SDL_Surface
+    SDL_CreateRGBSurfaceFrom - Creates an SDL_Surface from pixel data
+    SDL_FreeSurface - Frees (deletes) a SDL_Surface
+    SDL_LockSurface - Locks a surface for direct access.
+    SDL_UnlockSurface - Unlocks a previously locked surface.
+    SDL_ConvertSurface - Converts a surface to the same format as another surface.
+    SDL_DisplayFormat - Converts a surface to the display format
+    SDL_DisplayFormatAlpha - Converts a surface to the display format
+    SDL_LoadBMP - Loads a Windows BMP file into an SDL_Surface.
+    SDL_SaveBMP - Saves an SDL_Surface as a Windows BMP file.
+    SDL_SetColorKey - Sets the color key (transparent pixel) in a blittable surface and RLE acceleration.
+    SDL_SetAlpha - Adjusts the alpha properties of a surface
+    SDL_SetClipRect - Sets the clipping rectangle for a surface.
+    SDL_GetClipRect - Gets the clipping rectangle for a surface.
+    SDL_BlitSurface - This function performs a fast blit from the source surface to the destination surface.
+    SDL_FillRect - This function performs a fast fill of the given rectangle with some color
+    SDL_GL_LoadLibrary - Specifies an OpenGL library
+    SDL_GL_GetProcAddress - Gets the address of a GL function
+    SDL_GL_GetAttribute - Gets the value of a special SDL/OpenGL attribute
+    SDL_GL_SetAttribute - Sets a special SDL/OpenGL attribute
+    SDL_GL_SwapBuffers - Swaps OpenGL framebuffers/Update Display
+    SDL_GLattr - SDL GL Attributes
+    SDL_CreateYUVOverlay - Creates a YUV video overlay
+    SDL_LockYUVOverlay - Locks an overlay
+    SDL_UnlockYUVOverlay - Unlocks an overlay
+    SDL_DisplayYUVOverlay - Blits the overlay to the display
+    SDL_FreeYUVOverlay - Frees a YUV video overlay
+    SDL_Rect - Defines a rectangular area
+    SDL_Color - Format independent color description
+    SDL_Palette - Color palette for 8-bit pixel formats
+    SDL_PixelFormat - Stores surface format information
+    SDL_Surface - Graphical Surface Structure
+    SDL_VideoInfo - Video Target information
+    SDL_Overlay - YUV video overlay 
+
+Window management
+    SDL_GetWMInfo - Gets window-manager specific information, if available
+    SDL_WM_SetCaption - Sets the window title and icon name.
+    SDL_WM_GetCaption - Gets the window title and icon name.
+    SDL_WM_SetIcon - Sets the icon for the display window.
+    SDL_WM_IconifyWindow - Iconify/Minimise the window
+    SDL_WM_ToggleFullScreen - Toggles fullscreen mode
+    SDL_WM_GrabInput - Grabs mouse and keyboard input. 
+
+Events
+    SDL_Event_Structures
+    SDLKey - Keysym definitions
+    SDLMod - Modifier definitions
+    SDL_PumpEvents - Pumps the event loop, gathering events from the input devices
+    SDL_PeepEvents - Checks the event queue for messages and optionally returns them
+    SDL_PollEvent - Polls for currently pending events
+    SDL_WaitEvent - Waits indefinitely for the next available event
+    SDL_PushEvent - Pushes an event onto the event queue
+    SDL_GetEventFilter - Get current event filter
+    SDL_SetEventFilter - Sets up a filter to process all events
+    SDL_EventState - Allows you to set the state of processing certain events
+    SDL_GetKeyState - Gets a snapshot of the current keyboard state
+    SDL_GetModState - Gets the state of modifier keys
+    SDL_SetModState - Sets the state of modifier keys
+    SDL_GetKeyName - Gets the name of an SDL virtual keysym
+    SDL_EnableUNICODE - Enables UNICODE translation
+    SDL_EnableKeyRepeat - Sets keyboard repeat rate
+    SDL_GetMouseState - Retrieves the current state of the mouse
+    SDL_GetRelativeMouseState - Retrieves the current state of the mouse
+    SDL_GetAppState - Gets the state of the application
+    SDL_JoystickEventState - Enable/disable joystick event polling
+    SDL_StartTextInput - Start accepting Unicode text input events
+    SDL_StopTextInput - Stop accepting Unicode text input events
+    SDL_SetTextInputRect - Set the rectangle for input methods to display inputed Unicode text and candidate text 
+
+Mouse
+    SDL_WarpMouse - Sets the position of the mouse cursor.
+    SDL_CreateCursor - Creates a new mouse cursor.
+    SDL_FreeCursor - Frees a cursor created with SDL_CreateCursor.
+    SDL_SetCursor - Sets the currently active mouse cursor.
+    SDL_GetCursor - Gets the currently active mouse cursor.
+    SDL_ShowCursor - Toggles whether or not the cursor is shown on the screen. 
+
+Joystick
+    SDL_NumJoysticks - Counts available joysticks.
+    SDL_JoystickName - Gets joystick name.
+    SDL_JoystickOpen - Opens a joystick for use.
+    SDL_JoystickOpened - Determines if a joystick has been opened
+    SDL_JoystickIndex - Gets the index of an SDL_Joystick.
+    SDL_JoystickNumAxes - Gets the number of joystick axes
+    SDL_JoystickNumBalls - Gets the number of joystick trackballs
+    SDL_JoystickNumHats - Gets the number of joystick hats
+    SDL_JoystickNumButtons - Gets the number of joystick buttons
+    SDL_JoystickUpdate - Updates the state of all joysticks
+    SDL_JoystickGetAxis - Gets the current state of an axis
+    SDL_JoystickGetHat - Gets the current state of a joystick hat
+    SDL_JoystickGetButton - Gets the current state of a given button on a given joystick
+    SDL_JoystickGetBall - Gets relative trackball motion
+    SDL_JoystickClose - Closes a previously opened joystick 
+
+Audio
+    SDL_AudioSpec - Audio Specification Structure
+    SDL_OpenAudio - Opens the audio device with the desired parameters.
+    SDL_PauseAudio - Pauses and unpauses the audio callback processing
+    SDL_GetAudioStatus - Gets the current audio state
+    SDL_LoadWAV - Loads a WAVE file
+    SDL_FreeWAV - Frees previously opened WAV data
+    SDL_AudioCVT - Audio Conversion Structure
+    SDL_BuildAudioCVT - Initializes a SDL_AudioCVT - structure for conversion
+    SDL_ConvertAudio - Converts audio data to a desired audio format.
+    SDL_MixAudio - Mixes audio data
+    SDL_LockAudio - Locks out the callback function
+    SDL_UnlockAudio - Unlocks the callback function
+    SDL_CloseAudio - Shuts down audio processing and closes the audio device. 
+
+CD-ROM
+    SDL_CDNumDrives - Returns the number of CD-ROM drives on the system.
+    SDL_CDName - Returns a human-readable, system-dependent identifier for the CD-ROM.
+    SDL_CDOpen - Opens a CD-ROM drive for access.
+    SDL_CDStatus - Returns the current status of the given drive.
+    SDL_CDPlay - Plays a CD
+    SDL_CDPlayTracks - Plays the given CD track(s)
+    SDL_CDPause - Pauses a CDROM
+    SDL_CDResume - Resumes a CDROM
+    SDL_CDStop - Stops a CDROM
+    SDL_CDEject - Ejects a CDROM
+    SDL_CDClose - Closes a SDL_CD handle
+    SDL_CD - CDROM Drive Information
+    SDL_CDtrack - CD Track Information Structure 
+
+Multi-threaded programming
+    SDL_CreateThread - Creates a new thread of execution that shares its parent's properties.
+    SDL_ThreadID - Gets the 32-bit thread identifier for the current thread.
+    SDL_GetThreadID - Gets the SDL thread ID of a SDL_Thread
+    SDL_WaitThread - Waits for a thread to finish.
+    SDL_KillThread - Gracelessly terminates the thread.
+    SDL_CreateMutex - Creates a mutex
+    SDL_DestroyMutex - Destroys a mutex
+    SDL_mutexP - Locks a mutex
+    SDL_mutexV - Unlocks a mutex
+    SDL_CreateSemaphore - Creates a new semaphore and assigns an initial value to it.
+    SDL_DestroySemaphore - Destroys a semaphore that was created by SDL_CreateSemaphore.
+    SDL_SemWait - Locks a semaphore and suspend the thread if the semaphore value is zero.
+    SDL_SemTryWait - Attempts to lock a semaphore but do not suspend the thread.
+    SDL_SemWaitTimeout - Locks a semaphore, but only waits up to a specified maximum time.
+    SDL_SemPost - Unlocks a semaphore.
+    SDL_SemValue - Returns the current value of a semaphore.
+    SDL_CreateCond - Creates a condition variable
+    SDL_DestroyCond - Destroys a condition variable
+    SDL_CondSignal - Resumes a thread waiting on a condition variable
+    SDL_CondBroadcast - Resumes all threads waiting on a condition variable
+    SDL_CondWait - Waits on a condition variable
+    SDL_CondWaitTimeout - Waits on a condition variable, with timeout 
+
+Time
+    SDL_GetTicks - Gets the number of milliseconds since the SDL library initialization.
+    SDL_Delay - Waits a specified number of milliseconds before returning.
+    SDL_AddTimer - Adds a timer which will call a callback after the specified number of milliseconds has elapsed.
+    SDL_RemoveTimer - Removes a timer which was added with SDL_AddTimer.
+    SDL_SetTimer - Sets a callback to run after the specified number of milliseconds has elapsed (deprecated) 
+
+Files (RWops)
+    SDL_RWFromFile - Opens a file
+    SDL_RWFromFP - Opens a file from a stdio file pointer
+    SDL_RWFromMem - Prepares a memory area for use with SDL_RWops
+    SDL_RWFromConstMem - Prepares a constant memory area for use with SDL_RWops
+    SDL_AllocRW - Allocates an SDL_RWops structure
+    SDL_FreeRW - Frees an SDL_RWops structure
+    SDL_RWseek - Seeks within a data source
+    SDL_RWtell - Gets current position within a data source
+    SDL_RWread - Reads from a data source
+    SDL_RWwrite - Writes to a data source
+    SDL_RWclose - Closes a data source
+    SDL_RWops - Read/write operation structure 
+
+Sourced from SDL's wiki | SDL_API (last edited 2010-02-04 16:06:25 by 77-64-137-149)
+
+Status updates timestamp can be obtained from Git commit time
+
+

@@ -431,7 +431,20 @@ mergeInto(LibraryManager.library, {
   SDL_GetTicks: function() {
     return Math.floor(Date.now() - SDL.startTime);
   },
-
+  // Start alberthrocks' code!
+  SDL_AddTimer: function(interval, callback, param) {
+    return setInterval(callback, interval, param); // Not sure if I did this right...
+  },
+  SDL_RemoveTimer: function(id) {
+    return clearInterval(id);
+  },
+  // DIRTY HACK - SHOULD FIX WHEN SurfaceFormat AND THE LIKES ARE DONE!
+  SDL_DisplayFormat: function(surf) {
+    var flags;
+    flags |= 1; // SDL_HWSURFACE - this tells SDL_MUSTLOCK that this needs to be locked
+    return SDL.makeSurface(SDL.surfaces[surf].width, SDL.surfaces[surf].height, flags);
+  },
+  // End alberthrocks' code!
   SDL_PollEvent: function(ptr) {
     if (SDL.events.length === 0) return 0;
     if (ptr) {
