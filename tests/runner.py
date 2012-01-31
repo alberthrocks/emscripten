@@ -14,7 +14,7 @@ will use 4 processes. To install nose do something like
 '''
 
 from subprocess import Popen, PIPE, STDOUT
-import os, unittest, tempfile, shutil, time, inspect, sys, math, glob, tempfile, re, difflib, webbrowser, hashlib
+import os, unittest, tempfile, shutil, time, inspect, sys, math, glob, tempfile, re, difflib, webbrowser, hashlib, BaseHTTPServer, threading
 
 # Setup
 
@@ -30,7 +30,7 @@ sys.path += [path_from_root('')]
 try:
   assert COMPILER_OPTS != None
 except:
-  raise Exception('Cannot find "COMPILER_OPTS" definition. Is ~/.emscripten set up properly? You may need to copy the template from settings.py into it.')
+  raise Exception('Cannot find "COMPILER_OPTS" definition. Is %s set up properly? You may need to copy the template from settings.py into it.' % EM_CONFIG)
 
 # Core test runner class, shared between normal tests and benchmarks
 
@@ -280,7 +280,7 @@ if 'benchmark' not in str(sys.argv) and 'sanity' not in str(sys.argv):
         if Settings.USE_TYPED_ARRAYS:
           js_engines = filter(lambda engine: engine != V8_ENGINE, js_engines) # V8 issue 1822
         js_engines = filter(lambda engine: engine not in self.banned_js_engines, js_engines)
-        if len(js_engines) == 0: return self.skip('No JS engine present to run this test with. Check ~/.emscripten and settings.py and the paths therein.')
+        if len(js_engines) == 0: return self.skip('No JS engine present to run this test with. Check %s and settings.py and the paths therein.' % EM_CONFIG)
         for engine in js_engines:
           engine = filter(lambda arg: arg != '-n', engine) # SpiderMonkey issue 716255
           js_output = self.run_generated_code(engine, filename + '.o.js', args)
@@ -757,6 +757,7 @@ if 'benchmark' not in str(sys.argv) and 'sanity' not in str(sys.argv):
     def test_math(self):
         src = '''
           #include <stdio.h>
+          #include <stdlib.h>
           #include <cmath>
           int main()
           {
@@ -769,11 +770,22 @@ if 'benchmark' not in str(sys.argv) and 'sanity' not in str(sys.argv):
             printf(",%d", isinf(INFINITY) != 0);
             printf(",%d", isinf(-INFINITY) != 0);
             printf(",%d", isinf(12.3) != 0);
+            div_t div_result = div(23, 10);
+            printf(",%d", div_result.quot);
+            printf(",%d", div_result.rem);
+            double sine = -1.0, cosine = -1.0;
+            sincos(0.0, &sine, &cosine);
+            printf(",%1.1lf", sine);
+            printf(",%1.1lf", cosine);
+            float fsine = -1.0f, fcosine = -1.0f;
+            sincosf(0.0, &fsine, &fcosine);
+            printf(",%1.1f", fsine);
+            printf(",%1.1f", fcosine);
             printf("*\\n");
             return 0;
           }
         '''
-        self.do_run(src, '*3.14,-3.14,1,0,0,0,1,0,1,1,0*')
+        self.do_run(src, '*3.14,-3.14,1,0,0,0,1,0,1,1,0,2,3,0.0,1.0,0.0,1.0*')
 
     def test_math_hyperbolic(self):
         src = open(path_from_root('tests', 'hyperbolic', 'src.c'), 'r').read()
@@ -3605,6 +3617,24 @@ def process(filename):
       '''
       self.do_run(src, re.sub('(^|\n)\s+', '\\1', expected), post_build=add_pre_run_and_checks)
 
+    def test_direct_string_constant_usage(self):
+      if self.emcc_args is None: return self.skip('requires libcxx')
+
+      src = '''
+        #include <iostream>
+        template<int i>
+        void printText( const char (&text)[ i ] )
+        {
+           std::cout << text;
+        }
+        int main()
+        {
+          printText( "some string constant" );
+          return 0;
+        }
+      '''
+      self.do_run(src, "some string constant")
+
     def test_fs_base(self):
       Settings.INCLUDE_FULL_LIBRARY = 1
       try:
@@ -5550,13 +5580,32 @@ f.close()
       # TODO: test normal project linking, static and dynamic: get_library should not need to be told what to link!
       # TODO: deprecate llvm optimizations, dlmalloc, etc. in emscripten.py.
 
+      # For browser tests which report their success
+      def run_test_server(expectedResult):
+        class TestServerHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+          def do_GET(s):
+            assert s.path == expectedResult, 'Expected %s, got %s' % (expectedResult, s.path)
+            httpd.shutdown()
+          def handle_timeout():
+            assert False, 'Timed out while waiting for the browser test to finish'
+            httpd.shutdown()
+        httpd = BaseHTTPServer.HTTPServer(('localhost', 8888), TestServerHandler)
+        httpd.timeout = 5;
+        server_thread = threading.Thread(target=httpd.serve_forever)
+        server_thread.daemon = True
+        server_thread.start()
+        server_thread.join(5.5)
+
       # Finally, do some web browser tests
-      def run_browser(html_file, message):
-        webbrowser.open_new(html_file)
+      def run_browser(html_file, message, expectedResult = None):
+        webbrowser.open_new(os.path.abspath(html_file))
         print 'A web browser window should have opened a page containing the results of a part of this test.'
         print 'You need to manually look at the page to see that it works ok: ' + message
         print '(sleeping for a bit to keep the directory alive for the web browser..)'
-        time.sleep(5)
+        if expectedResult is not None:
+          run_test_server(expectedResult)
+        else:
+          time.sleep(5)
         print '(moving on..)'
 
       # test HTML generation.
@@ -5587,6 +5636,16 @@ f.close()
       ''')
       html_file.close()
       run_browser('main.html', 'You should see that the worker was called, and said "hello from worker!"')
+
+      # test the OpenGL ES implementation
+      clear()
+      output = Popen([EMCC, path_from_root('tests', 'hello_world_gles.c'), '-o', 'something.html',
+                                           '-DHAVE_BUILTIN_SINCOS',
+                                           '--shell-file', path_from_root('tests', 'hello_world_gles_shell.html')],
+                     stdout=PIPE, stderr=PIPE).communicate()
+      assert len(output[0]) == 0, output[0]
+      assert os.path.exists('something.html'), output
+      run_browser('something.html', 'You should see animating gears.', '/report_gl_result?true')
 
     def test_eliminator(self):
       input = open(path_from_root('tools', 'eliminator', 'eliminator-test.js')).read()
@@ -5890,10 +5949,10 @@ elif 'sanity' in str(sys.argv):
 
   print
   print 'Running sanity checks.'
-  print 'WARNING: This will modify ~/.emscripten, and in theory can break it although it should be restored properly. A backup will be saved in ~/.emscripten_backup'
+  print 'WARNING: This will modify %s, and in theory can break it although it should be restored properly. A backup will be saved in %s_backup' % (EM_CONFIG, EM_CONFIG)
   print
 
-  assert os.path.exists(CONFIG_FILE), 'To run these tests, we need a (working!) ~/.emscripten file to already exist'
+  assert os.path.exists(CONFIG_FILE), 'To run these tests, we need a (working!) %s file to already exist' % EM_CONFIG
 
   shutil.copyfile(CONFIG_FILE, CONFIG_FILE + '_backup')
   def restore():
@@ -5938,7 +5997,7 @@ elif 'sanity' in str(sys.argv):
 
     def test_aaa_normal(self): # this should be the very first thing that runs. if this fails, everything else is irrelevant!
       for command in commands:
-        # Your existing ~/.emscripten should work!
+        # Your existing EM_CONFIG should work!
         restore()
         self.check_working(command)
 
@@ -5949,14 +6008,14 @@ elif 'sanity' in str(sys.argv):
 
         self.assertContained('Welcome to Emscripten!', output)
         self.assertContained('This is the first time any of the Emscripten tools has been run.', output)
-        self.assertContained('A settings file has been copied to ~/.emscripten, at absolute path: %s' % CONFIG_FILE, output)
+        self.assertContained('A settings file has been copied to %s, at absolute path: %s' % (EM_CONFIG, CONFIG_FILE), output)
         self.assertContained('Please edit that file and change the paths to fit your system', output)
         self.assertContained('make sure LLVM_ROOT and NODE_JS are correct', output)
         self.assertContained('This command will now exit. When you are done editing those paths, re-run it.', output)
         assert output.replace('\n', '').endswith('===='), 'We should have stopped: ' + output
         assert (open(CONFIG_FILE).read() == open(path_from_root('settings.py')).read()), 'Settings should be copied from settings.py'
 
-        # Second run, with bad ~/.emscripten
+        # Second run, with bad EM_CONFIG
         for settings in ['blah', 'LLVM_ROOT="blah"; JS_ENGINES=[]; COMPILER_ENGINE=NODE_JS=SPIDERMONKEY_ENGINE=[]']:
           f = open(CONFIG_FILE, 'w')
           f.write(settings)
@@ -5964,7 +6023,7 @@ elif 'sanity' in str(sys.argv):
           output = self.do(command)
 
           if 'LLVM_ROOT' not in settings:
-            self.assertContained('Error in evaluating ~/.emscripten', output)
+            self.assertContained('Error in evaluating %s' % EM_CONFIG, output)
           else:
             self.assertContained('FATAL', output) # sanity check should fail
 
@@ -6000,7 +6059,7 @@ elif 'sanity' in str(sys.argv):
       SANITY_MESSAGE = 'Emscripten: Running sanity checks'
       SANITY_FAIL_MESSAGE = 'sanity check failed to run'
 
-      # emcc should check sanity if no ~/.emscripten_sanity
+      # emcc should check sanity if no ${EM_CONFIG}_sanity
       restore()
       time.sleep(0.1)
       assert not os.path.exists(SANITY_FILE) # restore is just the settings, not the sanity
