@@ -437,12 +437,6 @@ mergeInto(LibraryManager.library, {
     return Math.floor(Date.now() - SDL.startTime);
   },
   // Start alberthrocks' code!
-  SDL_AddTimer: function(interval, callback, param) {
-    return setInterval(callback, interval, param); // Not sure if I did this right...
-  },
-  SDL_RemoveTimer: function(id) {
-    return clearInterval(id);
-  },
   // DIRTY HACK - SHOULD FIX WHEN SurfaceFormat AND THE LIKES ARE DONE!
   SDL_DisplayFormat: function(surf) {
     var flags;
